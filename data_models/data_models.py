@@ -15,11 +15,11 @@ class Channel(db.Model):
 
 
 class Video(db.Model):
-    __tablename__ = 'books'
+    __tablename__ = 'videos'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     title = Column(String)
-    channel_id = Column(Integer, ForeignKey('authors.id'))
+    channel_id = Column(Integer, ForeignKey('channels.id'))
 
     def __repr__(self):
         return f"Video(title = {self.title}, channel_id = {self.channel_id})"
