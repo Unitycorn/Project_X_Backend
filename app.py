@@ -1,20 +1,7 @@
-from flask import Flask
-import os
-from data_models import db, Video, Channel
-from sqlalchemy.orm import Session
-from video_storage import video_storage as storage
+from flask import Flask, jsonify, request, render_template
+from data_manager import data_manager as video_manager, channel_manager as channel_manager
 
 app = Flask(__name__)
-
-"""
-basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///data/database.sqlite"
-db.init_app(app)
-
-
-engine = db.create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
-session = Session(engine)
-"""
 
 
 @app.route('/', methods=['GET'])
@@ -22,7 +9,7 @@ def index():
     """
     Get a fixed amount of random videos for the start page
     """
-    return "Hi"
+    return render_template('index.html')
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -33,52 +20,72 @@ def login():
     pass
 
 
-@app.route('/logout', methods=['POST'])
-def logout():
-    """
-    resets active user
-    """
-    pass
-
-
 @app.route('/register', methods=['POST'])
 def register():
-    """
-    creates new account in DB, generating a new unique ID and logs user in
-    """
-    pass
-
-
-@app.route('/upload', methods=['GET', 'POST'])
-def upload():
-    """
-    create new ID and adds new video to DB
-    """
-    pass
-
-
-@app.route('/edit/<video_id>', methods=['GET', 'POST'])
-def edit(video_id):
-    selected_video = storage.load_video(video_id)
-    if not selected_video:
-        return {"Error 404": "Video does not exist!"}
-    else:
-        return storage.update_video(selected_video)
-
-
-@app.route('/delete/<video_id>', methods=['POST'])
-def delete(video_id):
-    return storage.delete_video(video_id)
+    name = request.json['name']
+    about = request.json['description']
+    login_name = request.json['login_name']
+    password = request.json['password']
+    return channel_manager.add_channel(name, about, login_name, password)
 
 
 @app.route('/channel/<channel_id>', methods=['GET'])
 def channel(channel_id):
-    pass
+    return channel_manager.get_channel(channel_id)
+
+
+@app.route('/channel/delete/<channel_id>', methods=['POST'])
+def delete_channel(channel_id):
+    return channel_manager.remove_channel(channel_id)
+
+
+@app.route('/channel/edit/<channel_id>', methods=['GET', 'POST'])
+def edit_channel(channel_id):
+    if request.method == 'POST':
+        name = request.json['name']
+        about = request.json['description']
+        login_name = request.json['login_name']
+        password = request.json['password']
+        return channel_manager.edit_channel(channel_id, name, about, login_name, password)
+    elif request.method == 'GET':
+        return channel_manager.get_channel(channel_id)
+
+
+@app.route('/upload', methods=['POST'])
+def upload():
+    if request.method == 'POST':
+        file = request.files['video']
+        user_id = request.form['user_id']
+        title = request.form['title']
+        description = request.form['description']
+        tags = request.form['tags']
+        return video_manager.add_video(file, title, description, tags, user_id)
+
+
+@app.route('/edit/<video_id>', methods=['GET', 'POST'])
+def edit(video_id):
+    if request.method == 'POST':
+        title = request.json['title']
+        description = request.json['description']
+        tags = request.json['tags']
+        return video_manager.update_video(video_id, title, description, tags)
+    elif request.method == 'GET':
+        return video_manager.load_video(video_id)
+
+
+@app.route('/delete/<video_id>', methods=['POST'])
+def delete(video_id):
+    return video_manager.delete_video(video_id)
 
 
 @app.route('/video/<video_id>', methods=['GET'])
 def video(video_id):
-    return storage.load_video(video_id)
+    return video_manager.load_video(video_id)
+
+
+@app.errorhandler(405)
+def method_not_allowed_error(error):
+    return jsonify({"error": "Method Not Allowed"}), 405
 
 
 if __name__ == "__main__":
