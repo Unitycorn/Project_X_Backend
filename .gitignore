@@ -1,0 +1,58 @@
+# Python cache / compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environment
+venv/
+env/
+.venv/
+ENV/
+
+# Flask / general
+instance/
+*.log
+*.pid
+*.db
+*.sqlite3
+*.sqlite
+*.db-journal
+
+# Environment & secrets
+.env
+.env.*
+*.pem
+*.key
+
+# IDE / Editor stuff
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing / coverage
+.coverage
+coverage/
+htmlcov/
+uploads/
+.pytest_cache/
+.tox/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Migrations (if using Flask-Migrate/Alembic)
+migrations/versions/*.pyc
+migrations/*.log
+
+# Optional: compiled frontend if you have one inside project
+node_modules/

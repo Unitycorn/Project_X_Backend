@@ -1,4 +1,3 @@
-from matplotlib.cbook import index_of
 from sqlalchemy import create_engine, text
 from .id_generator import idGenerator
 from flask import Flask, jsonify
@@ -6,12 +5,13 @@ import datetime
 import os
 
 # Define the database URL
-DB_URL = "sqlite:///./Project_X_Backend/data/database.sqlite"
+DB_URL = "sqlite:///./FlowVid/data/database.sqlite"
 
 # Create the engine
 engine = create_engine(DB_URL, echo=False)
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = './Project_X_Backend/uploads/'
+app.config['UPLOAD_FOLDER'] = './FlowVid/uploads/'
+app.config['ALLOWED_DATATYPES'] = '.mp4', '.mkv', '.webm'
 
 
 def is_id_available(id_to_check):
@@ -129,7 +129,7 @@ def delete_video(video_id):
             connection.execute(text("DELETE FROM videos WHERE videos.id = :id"),
                                  {"id": video_id})
             connection.commit()
-            return {"400": f"Video {video_id}.mp4  has been successfully deleted from your channel."}
+            return {"200": f"Video {video_id}.mp4  has been successfully deleted from your channel."}
         except Exception as e:
             return {f"Error: {e}"}
 

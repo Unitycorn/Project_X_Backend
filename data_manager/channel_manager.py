@@ -1,14 +1,48 @@
+import os
+from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 from .id_generator import idGenerator
 from .data_manager import get_all_videos, delete_video, delete_comments, load_video
 from flask import jsonify
 import datetime
+import getpass
+import hashlib
+from cryptography.fernet import Fernet
+
+load_dotenv(verbose=True)
 
 # Define the database URL
-DB_URL = "sqlite:///./Project_X_Backend/data/database.sqlite"
+DB_URL = "sqlite:///./FlowVid/data/database.sqlite"
 
 # Create the engine
 engine = create_engine(DB_URL, echo=False)
+
+cipher_suite = Fernet(os.getenv('FERNET_KEY'))
+print(cipher_suite)
+
+
+def name_is_available(name):
+    try:
+        with engine.connect() as connection:
+            channel_names = connection.execute(text("SELECT name FROM users")).fetchall()
+            for channel_name in channel_names:
+                if name == channel_name[0]:
+                    return False
+            return True
+    except Exception as e:
+        return {"error": str(e)}
+
+
+def is_already_registered(login_handle):
+    try:
+        with engine.connect() as connection:
+            login_names = connection.execute(text("SELECT login_name FROM users")).fetchall()
+            for login_name in login_names:
+                if login_handle == login_name[0]:
+                    return True
+            return False
+    except Exception as e:
+        return {"error": str(e)}
 
 
 def is_id_available(id_to_check):
@@ -24,20 +58,27 @@ def is_id_available(id_to_check):
 
 
 def add_channel(name, description, login, password):
-    """Adds a new entry in the channels table"""
-    channel_id = idGenerator(8)
-    if is_id_available(channel_id):
-        logo_url = idGenerator(18)
-        with engine.connect() as connection:
-            try:
-                connection.execute(text("""INSERT INTO users(id, name, about, logo_URL, login_name, password)
-                                           VALUES (:channel_id, :name, :description, :logo_URL, :login, :password)"""),
-                                 {"channel_id": channel_id, "name": name, "description": description,
-                                            "logo_URL": logo_url + ".jpg", "login": login, "password": password})
-                connection.commit()
-                return {"Success": f"Channel {channel_id}  has been successfully created"}
-            except Exception as e:
-                return {f"Error: {e}"}
+    """Adds a new entry in the channels table if the login is not already in use"""
+    if not is_already_registered(login) and name_is_available(name):
+        while True:
+            channel_id = idGenerator(8)
+            if is_id_available(channel_id):
+                logo_url = idGenerator(18)
+                encrypted_password = cipher_suite.encrypt(password.encode()).decode()
+                with engine.connect() as connection:
+                    try:
+                        connection.execute(text("""INSERT INTO users(id, name, about, logo_URL, login_name, password)
+                                                   VALUES (:channel_id, :name, :description, :logo_URL, :login, :password)"""),
+                                            {"channel_id": channel_id, "name": name, "description": description,
+                                            "logo_URL": logo_url + ".jpg", "login": login, "password": encrypted_password})
+                        connection.commit()
+                        print(cipher_suite.decrypt(encrypted_password.encode()).decode())
+                        return {"Success": f"Channel {channel_id}  has been successfully created"}
+
+                    except Exception as e:
+                        return {f"Error: {e}"}
+    else:
+        return {"Error": f"{login} is already registered"}
 
 
 def remove_channel(channel_id):
@@ -70,6 +111,8 @@ def get_channel(channel_id):
             result = connection.execute(text("SELECT * FROM users WHERE users.id = :id"),
                                 {"id": channel_id})
             channel = result.fetchone()
+            encrypted_password = channel.password
+            print(cipher_suite.decrypt(encrypted_password.encode()).decode())
             return {"name": channel.name, "abonnements": channel.abonnements, "about": channel.about,
                     "playlists": channel.playlists, "logo URL": channel.logo_URL, "videos": videos}
         except Exception as e:

@@ -83,6 +83,11 @@ def video(video_id):
     return video_manager.load_video(video_id)
 
 
+@app.route('/video/<video_id>/comments/', methods=['GET'])
+def get_comments(video_id):
+    pass
+
+
 @app.errorhandler(405)
 def method_not_allowed_error(error):
     return jsonify({"error": "Method Not Allowed"}), 405
