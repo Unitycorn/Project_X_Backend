@@ -95,7 +95,7 @@ def remove_channel(channel_id):
             connection.commit()
             return {"400": f"Channel {channel_id}  has been successfully deleted"}
         except Exception as e:
-            return {f"Error: {e}"}
+            return {f"Error": str(e)}
 
 
 def get_channel(channel_id):
@@ -116,7 +116,7 @@ def get_channel(channel_id):
             return {"name": channel.name, "abonnements": channel.abonnements, "about": channel.about,
                     "playlists": channel.playlists, "logo URL": channel.logo_URL, "videos": videos}
         except Exception as e:
-            return {f"Error: {e}"}
+            return {f"Error": str(e)}
 
 
 def edit_channel(channel_id, channel_name, about, login, password):

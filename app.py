@@ -83,9 +83,24 @@ def video(video_id):
     return video_manager.load_video(video_id)
 
 
-@app.route('/video/<video_id>/comments/', methods=['GET'])
+@app.route('/video/<video_id>/comments', methods=['GET'])
 def get_comments(video_id):
-    pass
+    return video_manager.load_comments(video_id)
+
+
+@app.route('/video/<video_id>/comment/add', methods=['POST'])
+def add_comment(video_id):
+    return video_manager.add_comment(video_id, request.json['comment'], request.json['user_id'])
+
+
+@app.route('/comments/<comment_id>/delete', methods=['POST'])
+def delete_comment(comment_id):
+    return video_manager.delete_comment(comment_id)
+
+
+@app.route('/comments/<comment_id>/update', methods=['POST'])
+def update_comment(comment_id):
+    return video_manager.update_comment(comment_id, request.json['comment'])
 
 
 @app.errorhandler(405)

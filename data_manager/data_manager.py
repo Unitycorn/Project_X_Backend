@@ -1,4 +1,6 @@
 from sqlalchemy import create_engine, text
+from srsly.ruamel_yaml import comments
+
 from .id_generator import idGenerator
 from flask import Flask, jsonify
 import datetime
@@ -118,7 +120,43 @@ def delete_comments(video_id):
             connection.commit()
         return None
     except Exception as e:
-        return {f"Error: {e}"}
+        return {f"Error": str(e)}
+
+
+def add_comment(video_id, comment, user_id):
+    """Adds a comment to the associated video id"""
+    try:
+        with engine.connect() as connection:
+            connection.execute(text("INSERT INTO comments(comment, video_id, user_id) VALUES (:comment, :video_id, :user_id)"),
+                                {"video_id": video_id, "comment": comment, "user_id": user_id})
+            connection.commit()
+        return {"Success": "Comment successfully added."}
+    except Exception as e:
+        return {f"Error": str(e)}
+
+
+def delete_comment(comment_id):
+    """Deletes comment with the associated comment id"""
+    try:
+        with engine.connect() as connection:
+            connection.execute(text("DELETE FROM comments WHERE comments.id = :commentId"),
+                                {"commentId": comment_id})
+            connection.commit()
+        return {"Success": "Comment successfully deleted."}
+    except Exception as e:
+        return {f"Error": str(e)}
+
+
+def update_comment(comment_id, comment):
+    """Updates comment with the associated comment id"""
+    try:
+        with engine.connect() as connection:
+            connection.execute(text("UPDATE comments SET 'comment' = :comment WHERE comments.id = :commentId"),
+                                {"commentId": comment_id, "comment": comment})
+            connection.commit()
+        return {"Success": "Comment successfully updated."}
+    except Exception as e:
+        return {f"Error": str(e)}
 
 
 def delete_video(video_id):
@@ -131,7 +169,7 @@ def delete_video(video_id):
             connection.commit()
             return {"200": f"Video {video_id}.mp4  has been successfully deleted from your channel."}
         except Exception as e:
-            return {f"Error: {e}"}
+            return {f"Error": str(e)}
 
 
 def update_video(video_id, title, description, tags):
