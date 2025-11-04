@@ -7,12 +7,12 @@ import datetime
 import os
 
 # Define the database URL
-DB_URL = "sqlite:///./FlowVid/data/database.sqlite"
+DB_URL = "sqlite:///./data/database.sqlite"
 
 # Create the engine
 engine = create_engine(DB_URL, echo=False)
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = './FlowVid/uploads/'
+app.config['UPLOAD_FOLDER'] = './uploads/'
 app.config['ALLOWED_DATATYPES'] = '.mp4', '.mkv', '.webm'
 
 
