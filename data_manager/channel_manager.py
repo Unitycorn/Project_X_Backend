@@ -111,8 +111,8 @@ def get_channel(channel_id):
             result = connection.execute(text("SELECT * FROM users WHERE users.id = :id"),
                                 {"id": channel_id})
             channel = result.fetchone()
-            encrypted_password = channel.password
-            print(cipher_suite.decrypt(encrypted_password.encode()).decode())
+            # encrypted_password = channel.password
+            # print(cipher_suite.decrypt(encrypted_password.encode()).decode())
             return {"name": channel.name, "abonnements": channel.abonnements, "about": channel.about,
                     "playlists": channel.playlists, "logo URL": channel.logo_URL, "videos": videos}
         except Exception as e:
