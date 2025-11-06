@@ -1,13 +1,14 @@
 from sqlalchemy import create_engine, text
 from srsly.ruamel_yaml import comments
-
 from .id_generator import idGenerator
 from flask import Flask, jsonify
 import datetime
 import os
+from dotenv import load_dotenv
 
+load_dotenv(verbose=True)
 # Define the database URL
-DB_URL = "sqlite:///./data/database.sqlite"
+DB_URL = os.getenv('DB_URL')
 
 # Create the engine
 engine = create_engine(DB_URL, echo=False)

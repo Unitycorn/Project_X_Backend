@@ -12,7 +12,7 @@ from cryptography.fernet import Fernet
 load_dotenv(verbose=True)
 
 # Define the database URL
-DB_URL = "sqlite:///./data/database.sqlite"
+DB_URL = os.getenv('DB_URL')
 
 # Create the engine
 engine = create_engine(DB_URL, echo=False)
