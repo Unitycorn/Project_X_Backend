@@ -12,14 +12,14 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login', methods=['POST'])
 def login():
     """
     Checks DB for user / password; returns success or error
     """
     login_name = request.json['login_name']
     password = request.json['password']
-    return channel_manager.add_channel(login_name, password)
+    return channel_manager.login(login_name, password)
 
 
 @app.route('/register', methods=['POST'])
