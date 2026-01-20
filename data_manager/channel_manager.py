@@ -21,6 +21,19 @@ cipher_suite = Fernet(os.getenv('FERNET_KEY'))
 print(cipher_suite)
 
 
+def login(login_name, password):
+    try:
+        with engine.connect() as connection:
+            encrypted_password = cipher_suite.encrypt(password.encode()).decode()
+            user = connection.execute(text("SELECT * FROM users WHERE login_name = :login_name AND password = :password"),
+                                      {"login_name": login_name, "password": encrypted_password}).fetchone()
+            if user is None:
+                return {"error": "Login name or password incorrect"}
+            else:
+                return {"user": user}
+    except Exception as e:
+        return {"error": str(e)}
+
 def name_is_available(name):
     try:
         with engine.connect() as connection:
