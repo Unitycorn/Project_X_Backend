@@ -25,9 +25,8 @@ def login(login_name, password):
     try:
         with engine.connect() as connection:
             print("submitted password: " + str(password))
-            encrypted_password = cipher_suite.encrypt(password.encode()).decode()
-            test = cipher_suite._encrypt_from_parts(password.encode(), 0,b'\xbd\xc0,\x16\x87\xd7G\xb5\xe5\xcc\xdb\xf9\x07\xaf\xa0\xfa')
-            print("encrypted password: " + str(test))
+            encrypted_password = cipher_suite._encrypt_from_parts(password.encode(), 0,b'\xbd\xc0,\x16\x87\xd7G\xb5\xe5\xcc\xdb\xf9\x07\xaf\xa0\xfa')
+            print("encrypted password: " + str(encrypted_password))
             user = connection.execute(text("SELECT * FROM users WHERE login_name = :login_name AND password = :password"),
                                       {"login_name": login_name, "password": encrypted_password}).fetchone()
             if user is None:
@@ -86,9 +85,8 @@ def add_channel(name, description, login_name, password):
             channel_id = idGenerator(8)
             if is_id_available(channel_id):
                 logo_url = idGenerator(18)
-                encrypted_password = cipher_suite.encrypt(password.encode()).decode()
-                test = cipher_suite._encrypt_from_parts(password.encode(), 0,b'\xbd\xc0,\x16\x87\xd7G\xb5\xe5\xcc\xdb\xf9\x07\xaf\xa0\xfa')
-                print("encrypted password: " + str(test))
+                encrypted_password = cipher_suite._encrypt_from_parts(password.encode(), 0,b'\xbd\xc0,\x16\x87\xd7G\xb5\xe5\xcc\xdb\xf9\x07\xaf\xa0\xfa')
+                print("encrypted password: " + str(encrypted_password))
                 with engine.connect() as connection:
                     try:
                         connection.execute(text("""INSERT INTO users(id, name, about, logo_URL, login_name, password)
