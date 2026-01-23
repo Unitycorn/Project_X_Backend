@@ -16,7 +16,7 @@ DB_URL = os.getenv('DB_URL')
 
 # Create the engine
 engine = create_engine(DB_URL, echo=False)
-
+print("DB URL: " + str(engine.url))
 cipher_suite = Fernet(os.getenv('FERNET_KEY'))
 print(cipher_suite)
 
