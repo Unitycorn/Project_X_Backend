@@ -6,3 +6,4 @@ python-dotenv~=1.1.0
 cryptography~=46.0.2
 flask_cors
 gunicorn
+json

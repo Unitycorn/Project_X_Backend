@@ -1,3 +1,4 @@
+import json
 import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
@@ -32,7 +33,7 @@ def login(login_name, password):
             if user is None:
                 return jsonify({"error": "Login name or password incorrect"}), 401
             else:
-                return jsonify({"user": user}), 200
+                return jsonify({"user": json.dumps(user)}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -95,12 +96,12 @@ def add_channel(name, description, login_name, password):
                                             "logo_URL": logo_url + ".jpg", "login": login_name, "password": encrypted_password})
                         connection.commit()
                         print(cipher_suite.decrypt(encrypted_password.encode()).decode())
-                        return {"Success": f"Channel {channel_id}  has been successfully created"}
+                        return jsonify({"Success": f"Channel {channel_id}  has been successfully created"}), 200
 
                     except Exception as e:
-                        return {f"Error: {e}"}
+                        return jsonify({f"Error: {e}"}), 500
     else:
-        return {"Error": f"{login_name} is already registered"}
+        return jsonify({"Error": f"{login_name} is already registered"}), 401
 
 
 def remove_channel(channel_id):
