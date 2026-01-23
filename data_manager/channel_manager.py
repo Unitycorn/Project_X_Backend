@@ -48,11 +48,14 @@ def name_is_available(name):
 
 
 def is_already_registered(login_handle):
+    print("Check if name is already registered:" + login_handle)
     try:
         with engine.connect() as connection:
+            print("Check if name is already registered in try:" + login_handle)
             login_names = connection.execute(text("SELECT login_name FROM users")).fetchall()
             for login_name in login_names:
                 if login_handle == login_name[0]:
+                    print("check match" + login_name[0] + login_handle)
                     return True
             return False
     except Exception as e:
@@ -71,9 +74,10 @@ def is_id_available(id_to_check):
         return {"error": str(e)}
 
 
-def add_channel(name, description, login, password):
+def add_channel(name, description, login_name, password):
     """Adds a new entry in the channels table if the login is not already in use"""
-    if not is_already_registered(login) and name_is_available(name):
+
+    if not is_already_registered(login_name) and name_is_available(name):
         while True:
             channel_id = idGenerator(8)
             if is_id_available(channel_id):
@@ -84,7 +88,7 @@ def add_channel(name, description, login, password):
                         connection.execute(text("""INSERT INTO users(id, name, about, logo_URL, login_name, password)
                                                    VALUES (:channel_id, :name, :description, :logo_URL, :login, :password)"""),
                                             {"channel_id": channel_id, "name": name, "description": description,
-                                            "logo_URL": logo_url + ".jpg", "login": login, "password": encrypted_password})
+                                            "logo_URL": logo_url + ".jpg", "login": login_name, "password": encrypted_password})
                         connection.commit()
                         print(cipher_suite.decrypt(encrypted_password.encode()).decode())
                         return {"Success": f"Channel {channel_id}  has been successfully created"}
@@ -92,7 +96,7 @@ def add_channel(name, description, login, password):
                     except Exception as e:
                         return {f"Error: {e}"}
     else:
-        return {"Error": f"{login} is already registered"}
+        return {"Error": f"{login_name} is already registered"}
 
 
 def remove_channel(channel_id):
