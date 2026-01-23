@@ -33,8 +33,9 @@ def login(login_name, password):
             if channel is None:
                 return jsonify({"error": "Login name or password incorrect"}), 401
             else:
-                return {"name": channel.name, "id": channel.id, "email": channel.login_name,
-                     "logo URL": channel.logo_URL}
+                return {"user":{"name": channel.name, "id": channel.id, "email": channel.login_name,
+                     "logo URL": channel.logo_URL},
+                "token": "Example token"}
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
