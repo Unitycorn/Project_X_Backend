@@ -81,10 +81,12 @@ def add_channel(name, description, login_name, password):
 
     if not is_already_registered(login_name) and name_is_available(name):
         while True:
+            print("submitted password: " + str(password))
             channel_id = idGenerator(8)
             if is_id_available(channel_id):
                 logo_url = idGenerator(18)
                 encrypted_password = cipher_suite.encrypt(password.encode()).decode()
+                print("encrypted password: " + str(encrypted_password))
                 with engine.connect() as connection:
                     try:
                         connection.execute(text("""INSERT INTO users(id, name, about, logo_URL, login_name, password)

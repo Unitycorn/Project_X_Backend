@@ -1,7 +1,10 @@
 from flask import Flask, jsonify, request, render_template
+from flask_cors import CORS
 from data_manager import data_manager as video_manager, channel_manager as channel_manager
 
 app = Flask(__name__)
+
+CORS(app)  # This allows all origins, useful during development
 
 
 @app.route('/', methods=['GET'])
