@@ -28,12 +28,13 @@ def login(login_name, password):
             print("submitted password: " + str(password))
             encrypted_password = cipher_suite._encrypt_from_parts(password.encode(), 0,b'\xbd\xc0,\x16\x87\xd7G\xb5\xe5\xcc\xdb\xf9\x07\xaf\xa0\xfa')
             print("encrypted password: " + str(encrypted_password))
-            user = connection.execute(text("SELECT * FROM users WHERE login_name = :login_name AND password = :password"),
+            channel = connection.execute(text("SELECT * FROM users WHERE login_name = :login_name AND password = :password"),
                                       {"login_name": login_name, "password": encrypted_password}).fetchone()
-            if user is None:
+            if channel is None:
                 return jsonify({"error": "Login name or password incorrect"}), 401
             else:
-                return jsonify({"user": json.dumps(user)}), 200
+                return {"name": channel.name, "id": channel.id, "email": channel.login_name,
+                     "logo URL": channel.logo_URL}
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
