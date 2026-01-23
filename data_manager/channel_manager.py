@@ -24,7 +24,9 @@ print(cipher_suite)
 def login(login_name, password):
     try:
         with engine.connect() as connection:
+            print("submitted password: " + str(password))
             encrypted_password = cipher_suite.encrypt(password.encode()).decode()
+            print("encrypted password: " + str(encrypted_password))
             user = connection.execute(text("SELECT * FROM users WHERE login_name = :login_name AND password = :password"),
                                       {"login_name": login_name, "password": encrypted_password}).fetchone()
             if user is None:
