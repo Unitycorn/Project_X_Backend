@@ -1,4 +1,5 @@
 import os
+import JSON
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 from .id_generator import idGenerator
@@ -30,11 +31,11 @@ def login(login_name, password):
             user = connection.execute(text("SELECT * FROM users WHERE login_name = :login_name AND password = :password"),
                                       {"login_name": login_name, "password": encrypted_password}).fetchone()
             if user is None:
-                return {"error": "Login name or password incorrect"}
+                return jsonify({"error": "Login name or password incorrect"}), 401
             else:
-                return {"user": user}
+                return jsonify({"user": user}), 200
     except Exception as e:
-        return {"error": str(e)}
+        return jsonify({"error": str(e)}), 500
 
 
 def name_is_available(name):
