@@ -1,5 +1,4 @@
 import os
-import JSON
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 from .id_generator import idGenerator
