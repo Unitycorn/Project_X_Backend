@@ -20,7 +20,7 @@ def login():
     """
     Checks DB for user / password; returns success or error
     """
-    login_name = request.json['login_name']
+    login_name = request.json['email']
     password = request.json['password']
     return channel_manager.login(login_name, password)
 
