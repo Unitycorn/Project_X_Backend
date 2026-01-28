@@ -66,7 +66,7 @@ def load_comments(video_id):
                                                   WHERE videos.id = :video_id"""),
                                          {"video_id": video_id})
             comments = result.fetchall()
-            return {comments.index(row): {"comment": row[1], "by": get_user_name(row.user_id), "channelId": row.user_id, "likes": row.likes} for row in comments}
+            return {comments.index(row): {"comment": row[1], "by": get_user_name(row.user_id), "channelId": row.user_id, "likes": row.likes, "date": row.date} for row in comments}
     except Exception as e:
         return {"error": str(e)}
 
