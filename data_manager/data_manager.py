@@ -66,7 +66,7 @@ def load_comments(video_id):
                                                   WHERE videos.id = :video_id"""),
                                          {"video_id": video_id})
             comments = result.fetchall()
-            return {comments.index(row): {"comment": row[1], "by": get_user_name(row.user_id), "likes": row.likes} for row in comments}
+            return {comments.index(row): {"comment": row[1], "by": get_user_name(row.user_id), "channelId": row.user_id, "likes": row.likes} for row in comments}
     except Exception as e:
         return {"error": str(e)}
 
@@ -80,7 +80,7 @@ def load_video(video_id):
                                          JOIN users ON users.id = videos.channel_id WHERE videos.id = :video_id"""),
                                             {"video_id": video_id})
             video = result.fetchone()
-            return {"title": video.title, "channel": get_user_name(video.id), "description": video.description,
+            return {"title": video.title, "channelName": get_user_name(video.id),"channelId": video.channel_id, "description": video.description,
                 "likes": video.likes, "views": video.views, "url": app.config['UPLOAD_FOLDER'] + video_id + ".mp4",
                 "comments": comments, "date-uploaded": video.upload_date}
         except Exception as e:
