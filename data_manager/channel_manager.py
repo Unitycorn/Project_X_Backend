@@ -35,13 +35,13 @@ def login(login_name, password):
             channel = connection.execute(text("SELECT * FROM users WHERE login_name = :login_name AND password = :password"),
                                       {"login_name": login_name, "password": encrypted_password}).fetchone()
             if channel is None:
-                return jsonify({"error": "Login name or password incorrect"}), 401
+                return {"error": "Login name or password incorrect"}
             else:
                 return {"user":{"name": channel.name, "id": channel.id, "email": channel.login_name,
                      "icon": channel.logo_URL},
                 "token": "Example token"}
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return {"error": str(e)}
 
 
 def name_is_available(name):
@@ -116,7 +116,10 @@ def add_channel(file, name, description, login_name, password):
                     except Exception as e:
                         return {f"Error: {e}"}
     else:
-        return {"Error": f"{login_name} is already registered"}
+        if is_already_registered(login_name):
+            return {"error": f"{login_name} is already registered"}
+        else:
+            return {"error": f"{name} is already in use"}
 
 
 def remove_channel(channel_id):
