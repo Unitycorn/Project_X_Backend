@@ -60,12 +60,12 @@ def get_channel_icon(channel_id):
     """Loads the name of the channel for the given id"""
     try:
         with engine.connect() as connection:
-            result = connection.execute(text("""SELECT logo_URL
+            result = connection.execute(text("""SELECT *
                                                   FROM users
                                                   WHERE users.id = :user_id"""),
                                          {"user_id": channel_id})
             icon = result.fetchone()
-            return icon.logo_url
+            return icon.logo_URL if icon else None
 
     except Exception as e:
         return {"error": str(e)}
