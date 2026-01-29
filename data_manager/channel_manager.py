@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 from .id_generator import idGenerator
 from .data_manager import get_all_videos, delete_video, delete_comments, load_video
-from flask import jsonify
+from flask import jsonify, Flask
 import datetime
 import getpass
 import hashlib
@@ -14,6 +14,10 @@ load_dotenv(verbose=True)
 
 # Define the database URL
 DB_URL = os.getenv('DB_URL')
+
+app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = './uploads/images/'
+app.config['ALLOWED_DATATYPES'] = '.jpg', '.jpeg', '.webp'
 
 # Create the engine
 engine = create_engine(DB_URL, echo=False)
@@ -79,17 +83,24 @@ def is_id_available(id_to_check):
         return {"error": str(e)}
 
 
-def add_channel(name, description, login_name, password):
+def add_channel(file, name, description, login_name, password):
     """Adds a new entry in the channels table if the login is not already in use"""
 
     if not is_already_registered(login_name) and name_is_available(name):
+        extension = os.path.splitext(file.filename)[1]
         while True:
             print("submitted password: " + str(password))
             channel_id = idGenerator(8)
             if is_id_available(channel_id):
-                logo_url = idGenerator(18)
+                if file:
+                    logo_url = idGenerator(18)
+                    file.save(os.path.join(
+                        app.config['UPLOAD_FOLDER'],
+                        logo_url + extension
+                    ))
+
                 encrypted_password = cipher_suite._encrypt_from_parts(password.encode(), 0,b'\xbd\xc0,\x16\x87\xd7G\xb5\xe5\xcc\xdb\xf9\x07\xaf\xa0\xfa')
-                print("encrypted password: " + str(encrypted_password))
+
                 with engine.connect() as connection:
                     try:
                         connection.execute(text("""INSERT INTO users(id, name, about, logo_URL, login_name, password)

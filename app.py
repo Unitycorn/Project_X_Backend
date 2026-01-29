@@ -28,10 +28,11 @@ def login():
 @app.route('/register', methods=['POST'])
 def register():
     name = request.json['name']
+    file = request.files['image']
     about = request.json['description']
     login_name = request.json['login_name']
     password = request.json['password']
-    return channel_manager.add_channel(name, about, login_name, password)
+    return channel_manager.add_channel(file, name, about, login_name, password)
 
 
 @app.route('/channel/<channel_id>', methods=['GET'])
