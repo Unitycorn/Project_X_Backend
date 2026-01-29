@@ -62,8 +62,7 @@ def load_comments(video_id):
         with engine.connect() as connection:
             result = connection.execute(text("""SELECT *
                                                   FROM comments
-                                                  JOIN videos ON videos.id = comments.video_id
-                                                  WHERE videos.id = :video_id"""),
+                                                  WHERE video_id = :video_id"""),
                                          {"video_id": video_id})
             comments = result.fetchall()
             return {comments.index(row): {"comment": row[1], "by": get_user_name(row.user_id), "channelId": row.user_id, "likes": str(row.likes), "date": row.date} for row in comments}
