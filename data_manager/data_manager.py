@@ -13,7 +13,7 @@ DB_URL = os.getenv('DB_URL')
 # Create the engine
 engine = create_engine(DB_URL, echo=False)
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = './video/'
+app.config['UPLOAD_FOLDER'] = '/videos/'
 app.config['ALLOWED_DATATYPES'] = '.mp4', '.mkv', '.webm'
 
 
@@ -96,7 +96,7 @@ def load_video(video_id):
             video = result.fetchone()
             return {"id": video_id, "title": video.title, "channelName": get_user_name(video.id),"channelId": video.channel_id, "description": video.description,
                 "likes": video.likes, "views": video.views, "url": app.config['UPLOAD_FOLDER'] + video_id + ".mp4",
-                "comments": comments, "date-uploaded": video.upload_date}
+                "comments": comments, "date-uploaded": video.upload_date, "tags": video.tags}
         except Exception as e:
             return {"Error": str(e)}
 
