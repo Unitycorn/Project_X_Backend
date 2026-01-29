@@ -56,6 +56,21 @@ def get_user_name(user_id):
         return {"error": str(e)}
 
 
+def get_channel_icon(channel_id):
+    """Loads the name of the channel for the given id"""
+    try:
+        with engine.connect() as connection:
+            result = connection.execute(text("""SELECT logo_URL
+                                                  FROM users
+                                                  WHERE users.id = :user_id"""),
+                                         {"user_id": channel_id})
+            icon = result.fetchone()
+            return icon
+
+    except Exception as e:
+        return {"error": str(e)}
+
+
 def load_comments(video_id):
     """Retrieves comments associated with the specified video"""
     try:
@@ -65,7 +80,7 @@ def load_comments(video_id):
                                                   WHERE video_id = :video_id"""),
                                          {"video_id": video_id})
             comments = result.fetchall()
-            return {comments.index(row): {"comment": row[1], "by": get_user_name(row.user_id), "channelId": row.user_id, "likes": str(row.likes), "date": row.date} for row in comments}
+            return {comments.index(row): {"comment": row[1], "by": get_user_name(row.user_id), "icon": get_channel_icon(row.user_id), "channelId": row.user_id, "likes": row.likes, "date": row.date} for row in comments}
     except Exception as e:
         return {"error": str(e)}
 
