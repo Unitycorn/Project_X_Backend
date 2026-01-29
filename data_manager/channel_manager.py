@@ -87,13 +87,14 @@ def add_channel(file, name, description, login_name, password):
     """Adds a new entry in the channels table if the login is not already in use"""
 
     if not is_already_registered(login_name) and name_is_available(name):
-        extension = os.path.splitext(file.filename)[1]
+
         while True:
             print("submitted password: " + str(password))
             channel_id = idGenerator(8)
             logo = ""
             if is_id_available(channel_id):
                 if file:
+                    extension = os.path.splitext(file.filename)[1]
                     logo_url = idGenerator(18)
                     logo = logo_url + extension
                     file.save(os.path.join(
