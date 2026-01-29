@@ -13,7 +13,7 @@ DB_URL = os.getenv('DB_URL')
 # Create the engine
 engine = create_engine(DB_URL, echo=False)
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = './uploads/video/'
+app.config['UPLOAD_FOLDER'] = './video/'
 app.config['ALLOWED_DATATYPES'] = '.mp4', '.mkv', '.webm'
 
 
