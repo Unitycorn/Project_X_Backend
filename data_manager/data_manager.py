@@ -65,7 +65,7 @@ def get_channel_icon(channel_id):
                                                   WHERE users.id = :user_id"""),
                                          {"user_id": channel_id})
             icon = result.fetchone()
-            return icon
+            return icon.logo_url
 
     except Exception as e:
         return {"error": str(e)}
