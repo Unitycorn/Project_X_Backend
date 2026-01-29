@@ -91,12 +91,14 @@ def add_channel(file, name, description, login_name, password):
         while True:
             print("submitted password: " + str(password))
             channel_id = idGenerator(8)
+            logo = ""
             if is_id_available(channel_id):
                 if file:
                     logo_url = idGenerator(18)
+                    logo = logo_url + extension
                     file.save(os.path.join(
                         app.config['UPLOAD_FOLDER'],
-                        logo_url + extension
+                        logo
                     ))
 
                 encrypted_password = cipher_suite._encrypt_from_parts(password.encode(), 0,b'\xbd\xc0,\x16\x87\xd7G\xb5\xe5\xcc\xdb\xf9\x07\xaf\xa0\xfa')
@@ -106,9 +108,8 @@ def add_channel(file, name, description, login_name, password):
                         connection.execute(text("""INSERT INTO users(id, name, about, logo_URL, login_name, password)
                                                    VALUES (:channel_id, :name, :description, :logo_URL, :login, :password)"""),
                                             {"channel_id": channel_id, "name": name, "description": description,
-                                            "logo_URL": logo_url + ".jpg", "login": login_name, "password": encrypted_password})
+                                            "logo_URL": logo, "login": login_name, "password": encrypted_password})
                         connection.commit()
-                        print(cipher_suite.decrypt(encrypted_password.encode()).decode())
                         return {"Success": f"Channel {channel_id}  has been successfully created"}
 
                     except Exception as e:
