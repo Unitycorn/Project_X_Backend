@@ -109,12 +109,12 @@ def add_channel(file, name, description, login_name, password):
                                             "logo_URL": logo_url + ".jpg", "login": login_name, "password": encrypted_password})
                         connection.commit()
                         print(cipher_suite.decrypt(encrypted_password.encode()).decode())
-                        return jsonify({"Success": f"Channel {channel_id}  has been successfully created"}), 200
+                        return {"Success": f"Channel {channel_id}  has been successfully created"}
 
                     except Exception as e:
-                        return jsonify({f"Error: {e}"}), 500
+                        return {f"Error: {e}"}
     else:
-        return jsonify({"Error": f"{login_name} is already registered"}), 401
+        return {"Error": f"{login_name} is already registered"}
 
 
 def remove_channel(channel_id):
