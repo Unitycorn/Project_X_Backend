@@ -99,7 +99,7 @@ def add_comment(video_id):
     return video_manager.add_comment(video_id, request.json['comment'], request.json['channelId'], request.json['date'])
 
 
-@app.route('/comments/<comment_id>/delete', methods=['POST'])
+@app.route('/comments/<comment_id>/delete', methods=['GET'])
 def delete_comment(comment_id):
     return video_manager.delete_comment(comment_id)
 
