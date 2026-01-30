@@ -80,7 +80,7 @@ def load_comments(video_id):
                                                   WHERE video_id = :video_id"""),
                                          {"video_id": video_id})
             comments = result.fetchall()
-            return {comments.index(row): {"comment": row[1], "by": get_user_name(row.user_id), "icon": get_channel_icon(row.user_id), "channelId": row.user_id, "likes": row.likes, "date": row.date} for row in comments}
+            return {comments.index(row): {"id": row.id, "comment": row[1], "by": get_user_name(row.user_id), "icon": get_channel_icon(row.user_id), "channelId": row.user_id, "likes": row.likes, "date": row.date} for row in comments}
     except Exception as e:
         return {"error": str(e)}
 
@@ -138,16 +138,16 @@ def delete_comments(video_id):
         return {f"Error": str(e)}
 
 
-def add_comment(video_id, comment, user_id):
+def add_comment(video_id, comment, user_id, date):
     """Adds a comment to the associated video id"""
     try:
         with engine.connect() as connection:
-            connection.execute(text("INSERT INTO comments(comment, video_id, user_id) VALUES (:comment, :video_id, :user_id)"),
-                                {"video_id": video_id, "comment": comment, "user_id": user_id})
+            connection.execute(text("INSERT INTO comments(comment, video_id, user_id, date) VALUES (:comment, :video_id, :user_id, :date)"),
+                                {"video_id": video_id, "comment": comment, "user_id": user_id, "date": date})
             connection.commit()
         return {"Success": "Comment successfully added."}
     except Exception as e:
-        return {f"Error": str(e)}
+        return {f"error": str(e)}
 
 
 def delete_comment(comment_id):

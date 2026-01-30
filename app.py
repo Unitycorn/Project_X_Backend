@@ -96,7 +96,7 @@ def get_comments(video_id):
 
 @app.route('/video/<video_id>/comment/add', methods=['POST'])
 def add_comment(video_id):
-    return video_manager.add_comment(video_id, request.json['comment'], request.json['user_id'])
+    return video_manager.add_comment(video_id, request.json['comment'], request.json['channelId'], request.json['date'])
 
 
 @app.route('/comments/<comment_id>/delete', methods=['POST'])
