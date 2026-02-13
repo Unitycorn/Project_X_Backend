@@ -109,6 +109,11 @@ def update_comment(comment_id):
     return video_manager.update_comment(comment_id, request.json['comment'])
 
 
+@app.route('/health', methods=['GET'])
+def health():
+    return {"status": "OK"}
+
+
 @app.errorhandler(405)
 def method_not_allowed_error(error):
     return jsonify({"error": "Method Not Allowed"}), 405

@@ -5,10 +5,18 @@ from flask import Flask, jsonify
 import datetime
 import os
 from dotenv import load_dotenv
+from imagekitio import ImageKit
 
 load_dotenv(verbose=True)
 # Define the database URL
 DB_URL = os.getenv('DB_URL')
+
+imagekit = ImageKit(
+    private_key=os.getenv("IMAGEKIT_PRIVATE_KEY")
+)
+
+# Store URL endpoint for reuse
+URL_ENDPOINT = os.getenv("IMAGEKIT_URL_ENDPOINT")
 
 # Create the engine
 engine = create_engine(DB_URL, echo=False)
@@ -104,15 +112,19 @@ def load_video(video_id):
 def add_video(file, title, description, tags, channel_id):
     """Adds a new entry in the videos table"""
     upload_date = datetime.datetime.now()
-    extension = os.path.splitext(file.filename)[1]
+
     while True:
         video_id = idGenerator(8)
         if is_id_available(video_id):
             if file:
-                file.save(os.path.join(
-                          app.config['UPLOAD_FOLDER'],
-                          video_id + extension
-                          ))
+                extension = os.path.splitext(file.filename)[1]
+                # Upload from bytes (web forms)
+                image_data = file.read()
+                response = imagekit.files.upload(
+                    file=image_data,
+                    file_name=video_id + extension
+                )
+                print(response)
 
             with engine.connect() as connection:
                 try:
