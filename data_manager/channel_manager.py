@@ -68,8 +68,8 @@ def is_already_registered(login_handle):
                     return True
             return False
     except Exception as e:
-        return {"error": str(e)}
 
+        raise Exception(f"Database connection error: {str(e)}")
 
 def is_id_available(id_to_check):
     try:
@@ -85,42 +85,44 @@ def is_id_available(id_to_check):
 
 def add_channel(file, name, description, login_name, password):
     """Adds a new entry in the channels table if the login is not already in use"""
+    try:
+        if not is_already_registered(login_name) and name_is_available(name):
 
-    if not is_already_registered(login_name) and name_is_available(name):
+            while True:
+                print("submitted password: " + str(password))
+                channel_id = idGenerator(8)
+                logo = ""
+                if is_id_available(channel_id):
+                    if file:
+                        extension = os.path.splitext(file.filename)[1]
+                        logo_url = idGenerator(18)
+                        logo = logo_url + extension
+                        file.save(os.path.join(
+                            app.config['UPLOAD_FOLDER'],
+                            logo
+                        ))
 
-        while True:
-            print("submitted password: " + str(password))
-            channel_id = idGenerator(8)
-            logo = ""
-            if is_id_available(channel_id):
-                if file:
-                    extension = os.path.splitext(file.filename)[1]
-                    logo_url = idGenerator(18)
-                    logo = logo_url + extension
-                    file.save(os.path.join(
-                        app.config['UPLOAD_FOLDER'],
-                        logo
-                    ))
+                    encrypted_password = cipher_suite._encrypt_from_parts(password.encode(), 0,b'\xbd\xc0,\x16\x87\xd7G\xb5\xe5\xcc\xdb\xf9\x07\xaf\xa0\xfa')
 
-                encrypted_password = cipher_suite._encrypt_from_parts(password.encode(), 0,b'\xbd\xc0,\x16\x87\xd7G\xb5\xe5\xcc\xdb\xf9\x07\xaf\xa0\xfa')
+                    with engine.connect() as connection:
+                        try:
+                            connection.execute(text("""INSERT INTO users(id, name, about, logo_URL, login_name, password)
+                                                       VALUES (:channel_id, :name, :description, :logo_URL, :login, :password)"""),
+                                                {"channel_id": channel_id, "name": name, "description": description,
+                                                "logo_URL": logo, "login": login_name, "password": encrypted_password})
+                            connection.commit()
+                            return {"Success": f"Channel {channel_id}  has been successfully created"}
 
-                with engine.connect() as connection:
-                    try:
-                        connection.execute(text("""INSERT INTO users(id, name, about, logo_URL, login_name, password)
-                                                   VALUES (:channel_id, :name, :description, :logo_URL, :login, :password)"""),
-                                            {"channel_id": channel_id, "name": name, "description": description,
-                                            "logo_URL": logo, "login": login_name, "password": encrypted_password})
-                        connection.commit()
-                        return {"Success": f"Channel {channel_id}  has been successfully created"}
-
-                    except Exception as e:
-                        return {f"Error: {e}"}
-    else:
-        if is_already_registered(login_name):
-            return {"error": f"{login_name} is already registered"}
+                        except Exception as e:
+                            return {"error": f"Database insertion failed: {e}"}
         else:
-            return {"error": f"{name} is already in use"}
-
+            if is_already_registered(login_name):
+                return {"error": f"{login_name} is already registered"}
+            else:
+                return {"error": f"{name} is already in use"}
+                
+    except Exception as e:
+        return {"error": f"Database connection error: {str(e)}"}
 
 def remove_channel(channel_id):
     """Deletes a channel and all its videos with comments from the database."""
