@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine, text
 from srsly.ruamel_yaml import comments
+import base64
 from .id_generator import idGenerator
 from flask import Flask, jsonify
 import datetime
@@ -12,11 +13,11 @@ load_dotenv(verbose=True)
 DB_URL = os.getenv('DB_URL')
 
 imagekit = ImageKit(
-    private_key=os.getenv("IMAGEKIT_PRIVATE_KEY")
+    public_key=os.getenv('IMAGEKIT_PUBLIC_KEY'),
+    private_key=os.getenv('IMAGEKIT_PRIVATE_KEY'),
+    url_endpoint=os.getenv('IMAGEKIT_URL_ENDPOINT')
 )
 
-# Store URL endpoint for reuse
-URL_ENDPOINT = os.getenv("IMAGEKIT_URL_ENDPOINT")
 
 # Create the engine
 engine = create_engine(DB_URL, echo=False)
@@ -118,13 +119,16 @@ def add_video(file, title, description, tags, channel_id):
         if is_id_available(video_id):
             if file:
                 extension = os.path.splitext(file.filename)[1]
-                # Upload from bytes (web forms)
                 image_data = file.read()
-                response = imagekit.files.upload(
-                    file=image_data,
+                
+                encoded_video = base64.b64encode(image_data).decode('utf-8')
+                
+                response = imagekit.upload_file(
+                    file=encoded_video, 
                     file_name=video_id + extension
                 )
-                print(response)
+                
+                video_url = response.url
 
             with engine.connect() as connection:
                 try:
