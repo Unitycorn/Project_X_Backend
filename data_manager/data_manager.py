@@ -112,7 +112,6 @@ def load_video(video_id):
 def add_video(file, title, description, tags, channel_id):
     """Adds a new entry in the videos table"""
     upload_date = datetime.datetime.now()
-
     while True:
         video_id = idGenerator(8)
         if is_id_available(video_id):

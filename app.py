@@ -59,13 +59,17 @@ def edit_channel(channel_id):
 
 @app.route('/upload', methods=['POST'])
 def upload():
+    print("i am here")
+    print(request.files, request.form)
     if request.method == 'POST':
-        file = request.files['video']
+        file = request.files.get('video')
         user_id = request.form['user_id']
         title = request.form['title']
         description = request.form['description']
         tags = request.form['tags']
+        print("before return")
         return video_manager.add_video(file, title, description, tags, user_id)
+
 
 
 @app.route('/edit/<video_id>', methods=['GET', 'POST'])
