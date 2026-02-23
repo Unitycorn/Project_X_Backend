@@ -13,9 +13,8 @@ load_dotenv(verbose=True)
 DB_URL = os.getenv('DB_URL')
 
 imagekit = ImageKit(
-    public_key=os.getenv('IMAGEKIT_PUBLIC_KEY'),
     private_key=os.getenv('IMAGEKIT_PRIVATE_KEY'),
-    url_endpoint=os.getenv('IMAGEKIT_URL_ENDPOINT')
+    base_url=os.getenv('IMAGEKIT_URL_ENDPOINT')
 )
 
 
@@ -123,12 +122,13 @@ def add_video(file, title, description, tags, channel_id):
                 
                 encoded_video = base64.b64encode(image_data).decode('utf-8')
                 
-                response = imagekit.upload_file(
-                    file=encoded_video, 
+                response = imagekit.files.upload(
+                    file=image_data,
                     file_name=video_id + extension
                 )
                 
                 video_url = response.url
+                print(video_url)
 
             with engine.connect() as connection:
                 try:
