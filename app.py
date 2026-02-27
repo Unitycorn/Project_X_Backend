@@ -1,11 +1,25 @@
 from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
 from data_manager import data_manager as video_manager, channel_manager as channel_manager
+from dotenv import load_dotenv
+from sqlalchemy import create_engine, text
+import os
+from data_models.models import db
+
+load_dotenv()
 
 app = Flask(__name__)
 
-CORS(app)  # This allows all origins, useful during development
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DB_URL")
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+db.init_app(app)
+
+
+with app.app_context():
+    db.create_all()
+
+CORS(app)
 
 @app.route('/', methods=['GET'])
 def index():

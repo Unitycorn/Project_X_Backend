@@ -9,168 +9,207 @@ import datetime
 import getpass
 import hashlib
 from cryptography.fernet import Fernet
+from data_models.models import db
 
 load_dotenv(verbose=True)
 
-# Define the database URL
-DB_URL = os.getenv('DB_URL')
-
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = './uploads/images/'
-app.config['ALLOWED_DATATYPES'] = '.jpg', '.jpeg', '.webp'
+app.config['ALLOWED_DATATYPES'] = ('.jpg', '.jpeg', '.webp')
 
-# Create the engine
-engine = create_engine(DB_URL, echo=False)
-print("DB URL: " + str(engine.url))
+
+#print("DB URL: " + str(engine.url))
+
 cipher_suite = Fernet(os.getenv('FERNET_KEY'))
 print(cipher_suite)
 
 
 def login(login_name, password):
     try:
-        with engine.connect() as connection:
-            print("submitted password: " + str(password))
-            encrypted_password = cipher_suite._encrypt_from_parts(password.encode(), 0,b'\xbd\xc0,\x16\x87\xd7G\xb5\xe5\xcc\xdb\xf9\x07\xaf\xa0\xfa')
-            print("encrypted password: " + str(encrypted_password))
-            channel = connection.execute(text("SELECT * FROM users WHERE login_name = :login_name AND password = :password"),
-                                      {"login_name": login_name, "password": encrypted_password}).fetchone()
+        with db.engine.connect() as connection:
+            encrypted_password = cipher_suite._encrypt_from_parts(
+                password.encode(),
+                0,
+                b'\xbd\xc0,\x16\x87\xd7G\xb5\xe5\xcc\xdb\xf9\x07\xaf\xa0\xfa'
+            )
+
+            channel = connection.execute(
+                text("SELECT * FROM users WHERE login_name = :login_name AND password = :password"),
+                {"login_name": login_name, "password": encrypted_password}
+            ).fetchone()
+
             if channel is None:
                 return {"error": "Login name or password incorrect"}
-            else:
-                return {"user":{"name": channel.name, "id": channel.id, "email": channel.login_name,
-                     "icon": channel.logo_URL},
-                "token": "Example token"}
+
+            return {
+                "user": {
+                    "name": channel.name,
+                    "id": channel.id,
+                    "email": channel.login_name,
+                    "icon": channel.logo_URL
+                },
+                "token": "Example token"
+            }
+
     except Exception as e:
         return {"error": str(e)}
 
 
 def name_is_available(name):
     try:
-        with engine.connect() as connection:
-            channel_names = connection.execute(text("SELECT name FROM users")).fetchall()
-            for channel_name in channel_names:
-                if name == channel_name[0]:
-                    return False
-            return True
+        with db.engine.connect() as connection:
+            channel_names = connection.execute(
+                text("SELECT name FROM users")
+            ).fetchall()
+
+            return name not in [row[0] for row in channel_names]
+
     except Exception as e:
         return {"error": str(e)}
 
 
 def is_already_registered(login_handle):
-    print("Check if name is already registered:" + login_handle)
     try:
-        with engine.connect() as connection:
-            print("Check if name is already registered in try:" + login_handle)
-            login_names = connection.execute(text("SELECT login_name FROM users")).fetchall()
-            for login_name in login_names:
-                if login_handle == login_name[0]:
-                    print("check match" + login_name[0] + login_handle)
-                    return True
-            return False
-    except Exception as e:
+        with db.engine.connect() as connection:
+            login_names = connection.execute(
+                text("SELECT login_name FROM users")
+            ).fetchall()
 
+            return login_handle in [row[0] for row in login_names]
+
+    except Exception as e:
         raise Exception(f"Database connection error: {str(e)}")
+
 
 def is_id_available(id_to_check):
     try:
-        with engine.connect() as connection:
-            video_ids = connection.execute(text("SELECT id FROM users")).fetchall()
-            if id_to_check in video_ids:
-                return False
-            else:
-                return True
+        with db.engine.connect() as connection:
+            user_ids = connection.execute(
+                text("SELECT id FROM users")
+            ).fetchall()
+
+            return id_to_check not in [row[0] for row in user_ids]
+
     except Exception as e:
         return {"error": str(e)}
 
 
 def add_channel(file, name, description, login_name, password):
-    """Adds a new entry in the channels table if the login is not already in use"""
     try:
         if not is_already_registered(login_name) and name_is_available(name):
 
             while True:
-                print("submitted password: " + str(password))
                 channel_id = idGenerator(8)
                 logo = ""
+
                 if is_id_available(channel_id):
+
                     if file:
                         extension = os.path.splitext(file.filename)[1]
                         logo_url = idGenerator(18)
                         logo = logo_url + extension
-                        file.save(os.path.join(
-                            app.config['UPLOAD_FOLDER'],
-                            logo
-                        ))
+                        file.save(os.path.join(app.config['UPLOAD_FOLDER'], logo))
 
-                    encrypted_password = cipher_suite._encrypt_from_parts(password.encode(), 0,b'\xbd\xc0,\x16\x87\xd7G\xb5\xe5\xcc\xdb\xf9\x07\xaf\xa0\xfa')
+                    encrypted_password = cipher_suite._encrypt_from_parts(
+                        password.encode(),
+                        0,
+                        b'\xbd\xc0,\x16\x87\xd7G\xb5\xe5\xcc\xdb\xf9\x07\xaf\xa0\xfa'
+                    )
 
-                    with engine.connect() as connection:
-                        try:
-                            connection.execute(text("""INSERT INTO users(id, name, about, logo_URL, login_name, password)
-                                                       VALUES (:channel_id, :name, :description, :logo_URL, :login, :password)"""),
-                                                {"channel_id": channel_id, "name": name, "description": description,
-                                                "logo_URL": logo, "login": login_name, "password": encrypted_password})
-                            connection.commit()
-                            return {"Success": f"Channel {channel_id}  has been successfully created"}
+                    with db.engine.connect() as connection:
+                        connection.execute(text("""
+                            INSERT INTO users(id, name, about, logo_URL, login_name, password)
+                            VALUES (:channel_id, :name, :description, :logo_URL, :login, :password)
+                        """), {
+                            "channel_id": channel_id,
+                            "name": name,
+                            "description": description,
+                            "logo_URL": logo,
+                            "login": login_name,
+                            "password": encrypted_password
+                        })
 
-                        except Exception as e:
-                            return {"error": f"Database insertion failed: {e}"}
-        else:
-            if is_already_registered(login_name):
-                return {"error": f"{login_name} is already registered"}
-            else:
-                return {"error": f"{name} is already in use"}
-                
+                        connection.commit()
+
+                        return {"Success": f"Channel {channel_id} has been successfully created"}
+
+        if is_already_registered(login_name):
+            return {"error": f"{login_name} is already registered"}
+
+        return {"error": f"{name} is already in use"}
+
     except Exception as e:
         return {"error": f"Database connection error: {str(e)}"}
 
+
 def remove_channel(channel_id):
-    """Deletes a channel and all its videos with comments from the database."""
     all_videos = get_all_videos(channel_id)
+
     for video_id in all_videos:
         delete_comments(video_id)
         delete_video(video_id)
 
-    with engine.connect() as connection:
-        try:
-            connection.execute(text("DELETE FROM users WHERE users.id = :id"),
-                                {"id": channel_id})
+    try:
+        with db.engine.connect() as connection:
+            connection.execute(
+                text("DELETE FROM users WHERE users.id = :id"),
+                {"id": channel_id}
+            )
             connection.commit()
-            return {"400": f"Channel {channel_id}  has been successfully deleted"}
-        except Exception as e:
-            return {f"Error": str(e)}
+
+        return {"Success": f"Channel {channel_id} has been successfully deleted"}
+
+    except Exception as e:
+        return {"Error": str(e)}
 
 
 def get_channel(channel_id):
-    """Returns channel data and associated videos for the given channel id"""
     all_videos = get_all_videos(channel_id)
-    videos = {}
-    index = 0
-    for video_id in all_videos:
-        videos[index] = load_video(video_id)
-        index += 1
-    with engine.connect() as connection:
-        try:
-            result = connection.execute(text("SELECT * FROM users WHERE users.id = :id"),
-                                {"id": channel_id})
+    videos = {index: load_video(video_id) for index, video_id in enumerate(all_videos)}
+
+    try:
+        with db.engine.connect() as connection:
+            result = connection.execute(
+                text("SELECT * FROM users WHERE users.id = :id"),
+                {"id": channel_id}
+            )
+
             channel = result.fetchone()
-            # encrypted_password = channel.password
-            # print(cipher_suite.decrypt(encrypted_password.encode()).decode())
-            return {"name": channel.name, "abonnements": channel.abonnements, "about": channel.about,
-                    "playlists": channel.playlists, "logo URL": channel.logo_URL, "videos": videos}
-        except Exception as e:
-            return {f"Error": str(e)}
+
+            return {
+                "name": channel.name,
+                "abonnements": channel.abonnements,
+                "about": channel.about,
+                "playlists": channel.playlists,
+                "logo URL": channel.logo_URL,
+                "videos": videos
+            }
+
+    except Exception as e:
+        return {"Error": str(e)}
 
 
 def edit_channel(channel_id, channel_name, about, login, password):
-    """Updates the channel data for the given channel id in the users table"""
-    with engine.connect() as connection:
-        try:
-            connection.execute(text("""UPDATE users
-                                         SET 'name' = :channel_name, 'about'= :about, 'login_name'= :login, 'password'= :password
-                                         WHERE users.id == :channel_id"""),
-                                {'channel_id': channel_id, 'channel_name': channel_name, 'about': about, 'login': login, 'password': password})
+    try:
+        with db.engine.connect() as connection:
+            connection.execute(text("""
+                UPDATE users
+                SET name = :channel_name,
+                    about = :about,
+                    login_name = :login,
+                    password = :password
+                WHERE users.id = :channel_id
+            """), {
+                'channel_id': channel_id,
+                'channel_name': channel_name,
+                'about': about,
+                'login': login,
+                'password': password
+            })
+
             connection.commit()
-            return {"Success": "Channel infos have been successfully updated."}
-        except Exception as e:
-            return {f"Error": str(e)}
+
+        return {"Success": "Channel infos have been successfully updated."}
+
+    except Exception as e:
+        return {"Error": str(e)}

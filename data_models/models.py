@@ -5,13 +5,13 @@ db = SQLAlchemy()
 
 
 class Channel(db.Model):
-    __tablename__ = 'channel'
+    __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String)
 
     def __repr__(self):
-        return f"Author(name = {self.name})"
+        return f"User(name = {self.name})"
 
 
 class Video(db.Model):
@@ -19,7 +19,7 @@ class Video(db.Model):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     title = Column(String)
-    channel_id = Column(Integer, ForeignKey('channels.id'))
+    channel_id = Column(Integer, ForeignKey('users.id'))
 
     def __repr__(self):
         return f"Video(title = {self.title}, channel_id = {self.channel_id})"
