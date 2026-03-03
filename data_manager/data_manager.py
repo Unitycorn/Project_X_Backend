@@ -7,6 +7,7 @@ import datetime
 from imagekitio import ImageKit
 import os
 from dotenv import load_dotenv
+from data_models.models import db
 
 load_dotenv()
 
@@ -22,7 +23,7 @@ app.config['ALLOWED_DATATYPES'] = ('.mp4', '.mkv', '.webm')
 
 def is_id_available(id_to_check):
     try:
-        with engine.connect() as connection:
+        with db.engine.connect() as connection:
             video_ids = connection.execute(
                 text("SELECT id FROM videos")
             ).fetchall()
@@ -33,7 +34,7 @@ def is_id_available(id_to_check):
 
 def get_all_videos(channel_id):
     try:
-        with engine.connect() as connection:
+        with db.engine.connect() as connection:
             result = connection.execute(
                 text("SELECT id FROM videos WHERE videos.channel_id = :channel_id"),
                 {"channel_id": channel_id}
@@ -45,7 +46,7 @@ def get_all_videos(channel_id):
 
 def get_user_name(user_id):
     try:
-        with engine.connect() as connection:
+        with db.engine.connect() as connection:
             result = connection.execute(
                 text("SELECT * FROM users WHERE users.id = :user_id"),
                 {"user_id": user_id}
@@ -58,7 +59,7 @@ def get_user_name(user_id):
 
 def get_channel_icon(channel_id):
     try:
-        with engine.connect() as connection:
+        with db.engine.connect() as connection:
             result = connection.execute(
                 text("SELECT * FROM users WHERE users.id = :user_id"),
                 {"user_id": channel_id}
@@ -71,7 +72,7 @@ def get_channel_icon(channel_id):
 
 def load_comments(video_id):
     try:
-        with engine.connect() as connection:
+        with db.engine.connect() as connection:
             result = connection.execute(
                 text("SELECT * FROM comments WHERE video_id = :video_id"),
                 {"video_id": video_id}
@@ -97,7 +98,7 @@ def load_comments(video_id):
 def load_video(video_id):
     comments = load_comments(video_id)
     try:
-        with engine.connect() as connection:
+        with db.engine.connect() as connection:
             result = connection.execute(text("""
                 SELECT * FROM videos
                 JOIN users ON users.id = videos.channel_id
@@ -140,7 +141,7 @@ def add_video(file, title, description, tags, channel_id):
                 )
                 print(response.url)
 
-            with engine.connect() as connection:
+            with db.engine.connect() as connection:
                 try:
                     connection.execute(text("""
                         INSERT INTO videos(id, title, description, tags, channel_id, upload_date)
@@ -161,7 +162,7 @@ def add_video(file, title, description, tags, channel_id):
 
 def delete_comments(video_id):
     try:
-        with engine.connect() as connection:
+        with db.engine.connect() as connection:
             connection.execute(
                 text("DELETE FROM comments WHERE comments.video_id = :id"),
                 {"id": video_id}
@@ -174,7 +175,7 @@ def delete_comments(video_id):
 
 def add_comment(video_id, comment, user_id, date):
     try:
-        with engine.connect() as connection:
+        with db.engine.connect() as connection:
             connection.execute(text("""
                 INSERT INTO comments(comment, video_id, user_id, date)
                 VALUES (:comment, :video_id, :user_id, :date)
@@ -192,7 +193,7 @@ def add_comment(video_id, comment, user_id, date):
 
 def delete_comment(comment_id):
     try:
-        with engine.connect() as connection:
+        with db.engine.connect() as connection:
             connection.execute(
                 text("DELETE FROM comments WHERE comments.id = :commentId"),
                 {"commentId": comment_id}
@@ -205,7 +206,7 @@ def delete_comment(comment_id):
 
 def update_comment(comment_id, comment):
     try:
-        with engine.connect() as connection:
+        with db.engine.connect() as connection:
             connection.execute(
                 text("UPDATE comments SET comment = :comment WHERE comments.id = :commentId"),
                 {"commentId": comment_id, "comment": comment}
@@ -219,7 +220,7 @@ def update_comment(comment_id, comment):
 def delete_video(video_id):
     delete_comments(video_id)
     try:
-        with engine.connect() as connection:
+        with db.engine.connect() as connection:
             connection.execute(
                 text("DELETE FROM videos WHERE videos.id = :id"),
                 {"id": video_id}
@@ -232,7 +233,7 @@ def delete_video(video_id):
 
 def update_video(video_id, title, description, tags):
     try:
-        with engine.connect() as connection:
+        with db.engine.connect() as connection:
             connection.execute(text("""
                 UPDATE videos
                 SET title = :title,
